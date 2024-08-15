@@ -1,0 +1,284 @@
+/*import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class Book {
+    private int id;
+    private String title;
+    private String author;
+    private String ISBN;
+    private boolean isAvailable;
+
+    public Book(int id, String title, String author, String ISBN, boolean isAvailable) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.ISBN = ISBN;
+        this.isAvailable = isAvailable;
+    }
+
+    public Book(String title, String author, String ISBN) {
+        this(-1, title, author, ISBN, true); // Default constructor for adding a new book
+    }
+
+    // Getter for ID
+    public int getId() {
+        return id;
+    }
+
+    // Setter for ID
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    // Getter for Title
+    public String getTitle() {
+        return title;
+    }
+
+    // Getter for Author
+    public String getAuthor() {
+        return author;
+    }
+
+    // Getter for ISBN
+    public String getISBN() {
+        return ISBN;
+    }
+
+    // Getter for Availability
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    // Mark the book as borrowed
+    public void markAsBorrowed() {
+        isAvailable = false;
+    }
+
+    // Mark the book as returned
+    public void markAsReturned() {
+        isAvailable = true;
+    }
+
+    // Save book to the database
+    public void saveToDatabase() {
+        String sql = (id == -1) ?
+                "INSERT INTO books (title, author, isbn, is_available) VALUES (?, ?, ?, ?)" :
+                "UPDATE books SET title = ?, author = ?, isbn = ?, is_available = ? WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, title);
+            stmt.setString(2, author);
+            stmt.setString(3, ISBN);
+            stmt.setBoolean(4, isAvailable);
+            if (id != -1) {
+                stmt.setInt(5, id);
+            }
+            stmt.executeUpdate();
+            if (id == -1) {
+                // Retrieve generated ID for newly inserted book
+                try (var generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        id = generatedKeys.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    // Get book details
+    public String getDetails() {
+        return "Title: " + title + ", Author: " + author + ", ISBN: " + ISBN + ", Available: " + isAvailable;
+    }
+}*/
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * The Book class represents a book in the library system.
+ * It encapsulates details such as the book title, author, ISBN, availability status, and ID.
+ */
+public class Book {
+    private int id;
+    private String title;
+    private String author;
+    private String ISBN;
+    private boolean isAvailable;
+
+    /**
+     * Constructs a Book object with specified details.
+     *
+     * @param id The ID of the book (used for database retrieval)
+     * @param title The title of the book
+     * @param author The author of the book
+     * @param ISBN The ISBN of the book
+     * @param isAvailable The availability status of the book
+     */
+    public Book(int id, String title, String author, String ISBN, boolean isAvailable) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.ISBN = ISBN;
+        this.isAvailable = isAvailable;
+    }
+
+    /**
+     * Constructs a Book object for adding a new book.
+     *
+     * @param title The title of the book
+     * @param author The author of the book
+     * @param ISBN The ISBN of the book
+     */
+    public Book(String title, String author, String ISBN) {
+        this(-1, title, author, ISBN, true); // Default constructor for adding a new book
+    }
+
+    // Getter for ID
+    public int getId() {
+        return id;
+    }
+
+    // Setter for ID
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    // Getter for Title
+    public String getTitle() {
+        return title;
+    }
+
+    // Getter for Author
+    public String getAuthor() {
+        return author;
+    }
+
+    // Getter for ISBN
+    public String getISBN() {
+        return ISBN;
+    }
+
+    // Getter for Availability
+    public boolean isAvailable() {
+        return isAvailable;
+    }
+
+    // Mark the book as borrowed
+    public void markAsBorrowed() {
+        isAvailable = false;
+    }
+
+    // Mark the book as returned
+    public void markAsReturned() {
+        isAvailable = true;
+    }
+
+    /**
+     * Saves the book to the database. If the book ID is -1, it inserts a new record;
+     * otherwise, it updates an existing record.
+     */
+    public void saveToDatabase() {
+        String sql;
+        if (id == -1) {
+            // Insert new book
+            sql = "INSERT INTO books (title, author, isbn, is_available) VALUES (?, ?, ?, ?)";
+        } else {
+            // Update existing book
+            sql = "UPDATE books SET title = ?, author = ?, isbn = ?, is_available = ? WHERE id = ?";
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, title);
+            stmt.setString(2, author);
+            stmt.setString(3, ISBN);
+            stmt.setBoolean(4, isAvailable);
+
+            if (id != -1) {
+                stmt.setInt(5, id); // Set ID for update
+            }
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (id == -1 && affectedRows > 0) {
+                // Retrieve generated ID for new book
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        this.id = generatedKeys.getInt(1); // Set the generated ID
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Deletes the book from the database.
+     */
+    public void deleteFromDatabase() {
+        if (id == -1) {
+            System.out.println("Cannot delete a book that is not yet saved in the database.");
+            return;
+        }
+
+        String sql = "DELETE FROM books WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Retrieves a book from the database by its ID.
+     *
+     * @param id The ID of the book to retrieve
+     * @return The Book object with the specified ID or null if not found
+     */
+    public static Book getBookById(int id) {
+        String sql = "SELECT * FROM books WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Book(
+                            rs.getInt("id"),
+                            rs.getString("title"),
+                            rs.getString("author"),
+                            rs.getString("isbn"),
+                            rs.getBoolean("is_available")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Gets the details of the book in a readable format.
+     *
+     * @return A string representing the book details
+     */
+    public String getDetails() {
+        return "Title: " + title + ", Author: " + author + ", ISBN: " + ISBN + ", Available: " + isAvailable;
+    }
+}
+
+

@@ -101,10 +101,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * The Book class represents a book in the library system.
- * It encapsulates details such as the book title, author, ISBN, availability status, and ID.
- */
 public class Book {
     private int id;
     private String title;
@@ -112,15 +108,6 @@ public class Book {
     private String ISBN;
     private boolean isAvailable;
 
-    /**
-     * Constructs a Book object with specified details.
-     *
-     * @param id The ID of the book (used for database retrieval)
-     * @param title The title of the book
-     * @param author The author of the book
-     * @param ISBN The ISBN of the book
-     * @param isAvailable The availability status of the book
-     */
     public Book(int id, String title, String author, String ISBN, boolean isAvailable) {
         this.id = id;
         this.title = title;
@@ -129,13 +116,6 @@ public class Book {
         this.isAvailable = isAvailable;
     }
 
-    /**
-     * Constructs a Book object for adding a new book.
-     *
-     * @param title The title of the book
-     * @param author The author of the book
-     * @param ISBN The ISBN of the book
-     */
     public Book(String title, String author, String ISBN) {
         this(-1, title, author, ISBN, true); // Default constructor for adding a new book
     }
@@ -180,10 +160,6 @@ public class Book {
         isAvailable = true;
     }
 
-    /**
-     * Saves the book to the database. If the book ID is -1, it inserts a new record;
-     * otherwise, it updates an existing record.
-     */
     public void saveToDatabase() {
         String sql;
         if (id == -1) {
@@ -221,9 +197,6 @@ public class Book {
         }
     }
 
-    /**
-     * Deletes the book from the database.
-     */
     public void deleteFromDatabase() {
         if (id == -1) {
             System.out.println("Cannot delete a book that is not yet saved in the database.");
@@ -242,12 +215,6 @@ public class Book {
         }
     }
 
-    /**
-     * Retrieves a book from the database by its ID.
-     *
-     * @param id The ID of the book to retrieve
-     * @return The Book object with the specified ID or null if not found
-     */
     public static Book getBookById(int id) {
         String sql = "SELECT * FROM books WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -271,11 +238,6 @@ public class Book {
         return null;
     }
 
-    /**
-     * Gets the details of the book in a readable format.
-     *
-     * @return A string representing the book details
-     */
     public String getDetails() {
         return "Title: " + title + ", Author: " + author + ", ISBN: " + ISBN + ", Available: " + isAvailable;
     }

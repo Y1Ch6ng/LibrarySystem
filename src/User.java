@@ -2,10 +2,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The User class represents a generic user of the library system.
- * It is an abstract class that can be extended by specific user types like Member and Librarian.
- */
 public abstract class User {
     protected String name;
     protected String userId;
